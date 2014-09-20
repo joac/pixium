@@ -1,55 +1,79 @@
-<DOCTYPE htmli>
+<!DOCTYPE html>
 <html>
   <head>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
- <script src="http://www.daviddurman.com/flexi-color-picker/js/colorpicker.min.js"></script>
-  <style>
-#container {
-  height: 640px;
-  
-}
-  .controls{
-  background-color: white;
-  width: 260px;
-  height: 200px;
-}
- #picker { float: left; width: 200px; height: 200px }
- #slide { float: left; width: 30px; height: 200px }
- #sample { float: left; width: 30px; height: 200px }
-#pixum {display: none}
-   </style>  
+    <title>Pixium</title>
+    <link id="favicon" rel="icon" type="image/png" href="#"/>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://www.daviddurman.com/flexi-color-picker/js/colorpicker.min.js"></script>
+    <style>
+    #container {
+        height: 640px; 
+    }
+    .controls {
+        float: left;
+        background-color: white;
+        width: 260px;
+        height: 200px;
+        border: solid 2px gray;
+   }
+   #picker { 
+     float: left; width: 200px; height: 200px 
+   }
+   #slide { 
+     float: left; width: 30px; height: 200px 
+   }
+   #sample {
+     float: left; width: 30px; height: 200px 
+   }
+   #pixum {
+     display: none
+   }
+ </style>  
 </head>
-  <body>
-    <div class="controls"
-      <div id="picker"></div>
-      <div id="slide"></div>
-      <div id="sample"></div>
-    </div>
-    <div id="container">
-      <canvas id="pixum" width="64px" height="64px"></canvas> 
-    </div>
-    <script>
-   var canvas = document.getElementById('pixum'),
-    ctx = canvas.getContext('2d'); 
+<body>
+  <div class="controls">
+    <div id="picker"></div>
+    <div id="slide"></div>
+    <div id="sample"></div>
+  </div>
+  <div id="container">
+    <canvas id="pixum" width="128px" height="128px"></canvas> 
+  </div>
+  <script>
+    $(function () {
+      var canvas = document.getElementById('pixum'),
+        ctx = canvas.getContext('2d'), 
+        $container = $('#container'),
+        $sample = $('#sample'),
+        favicon = document.getElementById('favicon'),
+        Q = 16,
+        SIZE = 8;
+        function fillPixel (x, y) {
+            var content;
+            ctx.fillRect(x * Q, y * Q, Q, Q);
+            content = canvas.toDataURL("image/png", "");
+            $container.css('background-image',"url(" + content + ")");
+            console.log(favicon);
+            console.log(document.head);
+            document.head.removeChild(favicon);
+            favicon.href = content;
+            document.head.appendChild(favicon);
+        }
 
-    $("#container").click(function (evt) {
-      var x = Math.floor(evt.offsetX / 16 % 4),
-          y = Math.floor(evt.offsetY / 16 % 4);
-          console.log(x, y);
-          ctx.fillRect(x * 16, y * 16, 16, 16);
-      var content = canvas.toDataURL("image/png", "");
-      $("#container").css('background-image',"url(" +content +")");
-    });
+        $container.click(function (evt) {
+            var x = Math.floor(evt.offsetX / Q % SIZE),
+                y = Math.floor(evt.offsetY / Q % SIZE);
+            fillPixel(x, y)
+        });
 
-ColorPicker(
-                    document.getElementById('slide'),
-                    document.getElementById('picker'),
-                    function(hex, hsv, rgb) {
-                      console.log(hex)
-                      ctx.fillStyle = hex;
-                      $('#sample').css('background-color', hex);
-                    });
-    </script>
-
-  </body>
+        ColorPicker(
+            document.getElementById('slide'),
+            document.getElementById('picker'),
+            function(hex, hsv, rgb) {
+                ctx.fillStyle = hex;
+                $sample.css('background-color', hex);
+            });
+        });
+  </script>
+</body>
 </html>
