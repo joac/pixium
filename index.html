@@ -1,0 +1,56 @@
+<DOCTYPE htmli>
+<html>
+  <head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+ <script src="http://www.daviddurman.com/flexi-color-picker/js/colorpicker.min.js"></script>
+  <style>
+#container {
+  height: 640px;
+  
+}
+  .controls{
+  background-color: white;
+  width: 260px;
+  height: 200px;
+}
+ #picker { float: left; width: 200px; height: 200px }
+ #slide { float: left; width: 30px; height: 200px }
+ #sample { float: left; width: 30px; height: 200px }
+#pixum {display: none}
+   </style>  
+</head>
+  <body>
+    <div class="controls"
+      <div id="picker"></div>
+      <div id="slide"></div>
+      <div id="sample"></div>
+    </div>
+    <div id="container">
+      <canvas id="pixum" width="64px" height="64px"></canvas> 
+    </div>
+    <script>
+   var canvas = document.getElementById('pixum'),
+    ctx = canvas.getContext('2d'); 
+    ctx.strokeRect(0,0, 64, 64); 
+
+    $("#container").click(function (evt) {
+      var x = Math.floor(evt.offsetX / 16 % 4),
+          y = Math.floor(evt.offsetY / 16 % 4);
+          console.log(x, y);
+          ctx.fillRect(x * 16, y * 16, 16, 16);
+      var content = canvas.toDataURL("image/png", "");
+      $("#container").css('background-image',"url(" +content +")");
+    });
+
+ColorPicker(
+                    document.getElementById('slide'),
+                    document.getElementById('picker'),
+                    function(hex, hsv, rgb) {
+                      console.log(hex)
+                      ctx.fillStyle = hex;
+                      $('#sample').css('background-color', hex);
+                    });
+    </script>
+
+  </body>
+</html>
