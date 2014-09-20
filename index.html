@@ -45,7 +45,7 @@
      float: left; width: 30px; height: 200px 
    }
    #pixum {
-     display: none
+     ;display: none
    }
  </style>  
 </head>
@@ -73,16 +73,15 @@
             ctx.fillRect(x * Q, y * Q, Q, Q);
             content = canvas.toDataURL("image/png", "");
             $container.css('background-image',"url(" + content + ")");
-            console.log(favicon);
-            console.log(document.head);
             document.head.removeChild(favicon);
             favicon.href = content;
             document.head.appendChild(favicon);
         }
 
-        $container.click(function (evt) {
-            var x = Math.floor(evt.offsetX / Q % SIZE),
-                y = Math.floor(evt.offsetY / Q % SIZE);
+        $container.click(function (e) {
+            var x = Math.floor((e.offsetX || e.clientX - $(e.target).offset().left) / Q % SIZE),
+                y = Math.floor((e.offsetY || e.clientY - $(e.target).offset().top) / Q % SIZE);
+            console.log(e);    
             fillPixel(x, y)
         });
 
