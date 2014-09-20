@@ -9,7 +9,7 @@
     html, body {
       margin: 0;
       height: 100%;
-
+      font-family: Helvetica;
     }
     #container {
       min-width: 320px;
@@ -19,9 +19,21 @@
         float: left;
         background-color: white;
         width: 260px;
-        height: 200px;
         border: solid 2px gray;
-   }
+        padding: 6px;
+        -webkit-box-shadow: 0px 6px 13px 0px rgba(50, 50, 50, 0.82);
+        -moz-box-shadow:    0px 6px 13px 0px rgba(50, 50, 50, 0.82);
+        box-shadow:         0px 6px 13px 0px rgba(50, 50, 50, 0.82);
+      }
+    .controls .title {
+      margin-bottom: 6px;
+      font-size: 20px;
+      }
+    .controls .title small {
+      color: gray;
+      font-size: 10px;
+      margin-left: 4px;
+    }
    #picker { 
      float: left; width: 200px; height: 200px 
    }
@@ -29,6 +41,7 @@
      float: left; width: 30px; height: 200px 
    }
    #sample {
+     background-color: #000000;
      float: left; width: 30px; height: 200px 
    }
    #pixum {
@@ -38,6 +51,7 @@
 </head>
 <body>
   <div class="controls">
+    <div class="title">Pixium<small>Click Anywhere!</small></div>
     <div id="picker"></div>
     <div id="slide"></div>
     <div id="sample"></div>
