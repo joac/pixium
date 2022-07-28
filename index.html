@@ -1,98 +1,123 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Pixium</title>
-    <link id="favicon" rel="icon" type="image/png" href="#"/>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="http://www.daviddurman.com/flexi-color-picker/js/colorpicker.min.js"></script>
-    <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      font-family: Helvetica;
-    }
-    #container {
-      min-width: 320px;
-      height: 100%; 
-    }
-    .controls {
-        float: left;
-        background-color: white;
-        width: 260px;
-        border: solid 2px gray;
-        padding: 6px;
-        -webkit-box-shadow: 0px 6px 13px 0px rgba(50, 50, 50, 0.82);
-        -moz-box-shadow:    0px 6px 13px 0px rgba(50, 50, 50, 0.82);
-        box-shadow:         0px 6px 13px 0px rgba(50, 50, 50, 0.82);
-      }
-    .controls .title {
-      margin-bottom: 6px;
-      font-size: 20px;
-      }
-    .controls .title small {
-      color: gray;
-      font-size: 10px;
-      margin-left: 4px;
-    }
-   #picker { 
-     float: left; width: 200px; height: 200px 
-   }
-   #slide { 
-     float: left; width: 30px; height: 200px 
-   }
-   #sample {
-     background-color: #000000;
-     float: left; width: 30px; height: 200px 
-   }
-   #pixum {
-     ;display: none
-   }
- </style>  
-</head>
-<body>
-  <div class="controls">
-    <div class="title">Pixium<small>Click Anywhere!</small></div>
-    <div id="picker"></div>
-    <div id="slide"></div>
-    <div id="sample"></div>
-  </div>
-  <div id="container">
-    <canvas id="pixum" width="128px" height="128px"></canvas> 
-  </div>
-  <script>
-    $(function () {
-      var canvas = document.getElementById('pixum'),
-        ctx = canvas.getContext('2d'), 
-        $container = $('#container'),
-        $sample = $('#sample'),
-        favicon = document.getElementById('favicon'),
-        Q = 16,
-        SIZE = 8;
-        function fillPixel (x, y) {
-            var content;
-            ctx.fillRect(x * Q, y * Q, Q, Q);
-            content = canvas.toDataURL("image/png", "");
-            $container.css('background-image',"url(" + content + ")");
-            document.head.removeChild(favicon);
-            favicon.href = content;
-            document.head.appendChild(favicon);
-        }
+    <head>
+        <title>Pixium</title>
+        <link id="favicon" rel="icon" type="image/png" href="#" />
+        <script
+            type="application/javascript"
+            src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"
+        ></script>
+        <script
+            type="application/javascript"
+            src="//www.daviddurman.com/flexi-color-picker/js/colorpicker.min.js"
+        ></script>
+        <style type="text/css">
+            html,
+            body {
+                margin: 0;
+                height: 100%;
+                font-family: Helvetica;
+            }
+            #container {
+                min-width: 320px;
+                height: 100%;
+            }
+            .controls {
+                float: left;
+                background-color: white;
+                width: 260px;
+                border: solid 2px gray;
+                padding: 6px;
+                -webkit-box-shadow: 0px 6px 13px 0px rgba(50, 50, 50, 0.82);
+                -moz-box-shadow: 0px 6px 13px 0px rgba(50, 50, 50, 0.82);
+                box-shadow: 0px 6px 13px 0px rgba(50, 50, 50, 0.82);
+            }
+            .controls .title {
+                margin-bottom: 6px;
+                font-size: 20px;
+            }
+            .controls .title small {
+                color: gray;
+                font-size: 10px;
+                margin-left: 4px;
+            }
+            #picker {
+                float: left;
+                width: 200px;
+                height: 200px;
+            }
+            #slide {
+                float: left;
+                width: 30px;
+                height: 200px;
+            }
+            #sample {
+                background-color: #000000;
+                float: left;
+                width: 30px;
+                height: 200px;
+            }
+            #pixum {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="controls">
+            <div class="title">Pixium<small>Click Anywhere!</small></div>
+            <div id="picker"></div>
+            <div id="slide"></div>
+            <div id="sample"></div>
+        </div>
+        <div id="container">
+            <canvas id="pixum" width="128px" height="128px"></canvas>
+        </div>
+        <script type="application/javascript">
+            $(function () {
+                var canvas = document.getElementById("pixum"),
+                    ctx = canvas.getContext("2d"),
+                    $container = $("#container"),
+                    $sample = $("#sample"),
+                    favicon = document.getElementById("favicon"),
+                    Q = 16,
+                    SIZE = 8;
 
-        $container.click(function (e) {
-            var x = Math.floor((e.offsetX || e.clientX - $(e.target).offset().left) / Q % SIZE),
-                y = Math.floor((e.offsetY || e.clientY - $(e.target).offset().top) / Q % SIZE);
-            console.log(e);    
-            fillPixel(x, y)
-        });
+                function fillPixel(x, y) {
+                    var content;
+                    ctx.fillRect(x * Q, y * Q, Q, Q);
+                    content = canvas.toDataURL("image/png", "");
+                    $container.css("background-image", "url(" + content + ")");
+                    document.head.removeChild(favicon);
+                    favicon.href = content;
+                    document.head.appendChild(favicon);
+                }
 
-        ColorPicker(
-            document.getElementById('slide'),
-            document.getElementById('picker'),
-            function(hex, hsv, rgb) {
-                ctx.fillStyle = hex;
-                $sample.css('background-color', hex);
+                $container.click(function (e) {
+                    var x = Math.floor(
+                            ((e.offsetX ||
+                                e.clientX - $(e.target).offset().left) /
+                                Q) %
+                                SIZE
+                        ),
+                        y = Math.floor(
+                            ((e.offsetY ||
+                                e.clientY - $(e.target).offset().top) /
+                                Q) %
+                                SIZE
+                        );
+                    console.log(e);
+                    fillPixel(x, y);
+                });
+
+                ColorPicker(
+                    document.getElementById("slide"),
+                    document.getElementById("picker"),
+                    function (hex, hsv, rgb) {
+                        ctx.fillStyle = hex;
+                        $sample.css("background-color", hex);
+                    }
+                );
             });
-        });
-  </script>
-</body>
+        </script>
+    </body>
 </html>
