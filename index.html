@@ -132,13 +132,22 @@
                     }
                     return output;
                 };
+                let prev = '';
+                const updateHash = () => {
+                    document.location.hash = encodeURIComponent(encode(data));
+                }
                 const fillPixel = (x, y) => {
                     data[x][y] = canvas.ctx.fillStyle;
                     canvas.ctx.fillRect(x * Q, y * Q, Q, Q);
                     const content = canvas.element.toDataURL("image/png", "");
                     download.href = content;
-                    document.location.hash = encodeURIComponent(encode(data));
-                    container.style["background-image"] = `url(${content})`;
+                    const next = `url(${content})`;
+                    if (prev) {
+                        container.style["background-image"] = `${next}, ${prev}`;
+                    } else {
+                        container.style["background-image"] = next;
+                    }
+                    prev = next;
                     document.head.removeChild(favicon);
                     favicon.href = content;
                     document.head.appendChild(favicon);
@@ -175,6 +184,9 @@
 
                 container.addEventListener("mousedown", (e) => {
                     if (e.buttons === 1) draw(e);
+                });
+                container.addEventListener("mouseup", (e) => {
+                    updateHash();
                 });
                 container.addEventListener("mousemove", (e) => {
                     if (e.buttons === 1) draw(e);
