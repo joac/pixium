@@ -3,10 +3,6 @@
     <head>
         <title>Pixium</title>
         <link id="favicon" rel="icon" type="image/png" href="#" />
-        <script
-            type="application/javascript"
-            src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"
-        ></script>
         <style type="text/css">
             html,
             body {
@@ -64,11 +60,10 @@
             <canvas id="pixum" width="128px" height="128px"></canvas>
         </div>
         <script type="application/javascript">
-            $(function () {
+            document.addEventListener("DOMContentLoaded", () => {
                 var canvas = document.getElementById("pixum"),
                     ctx = canvas.getContext("2d"),
-                    $container = $("#container"),
-                    $sample = $("#sample"),
+                    container = document.getElementById("container"),
                     favicon = document.getElementById("favicon"),
                     Q = 16,
                     SIZE = 8;
@@ -77,25 +72,17 @@
                     var content;
                     ctx.fillRect(x * Q, y * Q, Q, Q);
                     content = canvas.toDataURL("image/png", "");
-                    $container.css("background-image", "url(" + content + ")");
+                    container.style["background-image"] = `url(${content})`;
                     document.head.removeChild(favicon);
                     favicon.href = content;
                     document.head.appendChild(favicon);
                 }
+                const clamp = (v) => Math.floor((v / Q) % SIZE);
 
-                $container.click(function (e) {
-                    var x = Math.floor(
-                            ((e.offsetX ||
-                                e.clientX - $(e.target).offset().left) /
-                                Q) %
-                                SIZE
-                        ),
-                        y = Math.floor(
-                            ((e.offsetY ||
-                                e.clientY - $(e.target).offset().top) /
-                                Q) %
-                                SIZE
-                        );
+                container.addEventListener("mousedown", function (e) {
+                    console.log(e.target);
+                    const x = clamp(e.clientX);
+                    const y = clamp(e.clientY);
                     fillPixel(x, y);
                 });
                 let selected = { h: 0, s: 100, l: 50 };
@@ -109,8 +96,12 @@
 
                 sliderCanvas.addEventListener("mousedown", (e) => {
                     const rect = sliderCanvas.getBoundingClientRect();
-                    const x = event.clientY - rect.top;
-                    selected.h = x;
+                    const h = event.clientY - rect.top;
+                    selected = {
+                        ...selected,
+                        h,
+                    };
+                    memory.push(selected);
                     renderPicker();
                 });
                 const toSLCords = (x, y) => {
@@ -120,6 +111,8 @@
                     };
                 };
 
+                const hsl = (h, s = 100, l = 50) => `hsl(${h}, ${s}%, ${l}%)`;
+
                 selectorCanvas.addEventListener("mousedown", (e) => {
                     const rect = selectorCanvas.getBoundingClientRect();
                     const x = event.clientX - rect.left;
@@ -128,23 +121,36 @@
                         ...selected,
                         ...toSLCords(x, y),
                     };
+                    memory.push(selected);
                     renderPicker();
                 });
-
+                const memory = [];
                 const renderPicker = () => {
                     const step = 1;
                     for (let i = 0; i < 360; i += step) {
-                        sliderCtx.fillStyle = `hsl(${i}, 100%, 50%)`;
+                        sliderCtx.fillStyle = hsl(i, 100, 50);
                         sliderCtx.fillRect(0, i, 30, step);
                     }
                     const gradient = 1;
-                    sampleCtx.fillStyle =
-                        ctx.fillStyle = `hsl(${selected.h}, ${selected.s}%, ${selected.l}%)`;
-                    sampleCtx.fillRect(0, 0, 30, 360);
+                    sampleCtx.fillStyle = ctx.fillStyle = hsl(
+                        selected.h,
+                        selected.s,
+                        selected.l
+                    );
+                    console.log(memory);
+                    for (let n = 0; n < Math.min(12, memory.length); n++) {
+                        if (!memory.length) {
+                            break;
+                        }
+                        const { h, s, l } = memory[memory.length - n - 1];
+                        console.log(h, s, l);
+                        sampleCtx.fillStyle = hsl(h, s, l);
+                        sampleCtx.fillRect(0, n * 30, 30, 30);
+                    }
                     for (let x = 0; x < 360; x += gradient) {
                         for (let y = 0; y < 360; y += gradient) {
                             const { s, l } = toSLCords(x, y);
-                            selectorCtx.fillStyle = `hsl(${selected.h}, ${s}%, ${l}%)`;
+                            selectorCtx.fillStyle = hsl(selected.h, s, l);
                             selectorCtx.fillRect(x, y, gradient, gradient);
                         }
                     }
