@@ -20,8 +20,6 @@
                 width: 420px;
                 border: solid 2px gray;
                 padding: 6px;
-                -webkit-box-shadow: 0px 6px 13px 0px rgba(50, 50, 50, 0.82);
-                -moz-box-shadow: 0px 6px 13px 0px rgba(50, 50, 50, 0.82);
                 box-shadow: 0px 6px 13px 0px rgba(50, 50, 50, 0.82);
             }
             .controls .title {
@@ -61,97 +59,125 @@
         </div>
         <script type="application/javascript">
             document.addEventListener("DOMContentLoaded", () => {
-                var canvas = document.getElementById("pixum"),
-                    ctx = canvas.getContext("2d"),
+                const component = (name) => {
+                    const element = document.getElementById(name),
+                        ctx = element.getContext("2d");
+                    return { element, ctx };
+                };
+                const canvas = component("pixum"),
+                    slider = component("slider"),
+                    selector = component("selector"),
+                    sample = component("sample"),
                     container = document.getElementById("container"),
                     favicon = document.getElementById("favicon"),
                     Q = 16,
                     SIZE = 8;
+                const gradient = 30;
 
-                function fillPixel(x, y) {
-                    var content;
-                    ctx.fillRect(x * Q, y * Q, Q, Q);
-                    content = canvas.toDataURL("image/png", "");
+                const hsl = (h, s = 100, l = 50) => `hsl(${h}, ${s}%, ${l}%)`;
+
+                const state = {
+                    previousColors: [],
+                    currentColor: undefined,
+                };
+
+                const setCurrentColor = (newColor) => {
+                    state.currentColor = {
+                        ...state.currentColor,
+                        ...newColor,
+                    };
+                    state.previousColors.push(state.currentColor);
+                    const { h, s, l } = state.currentColor;
+                    canvas.ctx.fillStyle = hsl(h, s, l);
+                };
+
+                setCurrentColor({ h: 50, s: 100, l: 50 });
+
+                const fillPixel = (x, y) => {
+                    canvas.ctx.fillRect(x * Q, y * Q, Q, Q);
+                    const content = canvas.element.toDataURL("image/png", "");
                     container.style["background-image"] = `url(${content})`;
                     document.head.removeChild(favicon);
                     favicon.href = content;
                     document.head.appendChild(favicon);
-                }
+                };
                 const clamp = (v) => Math.floor((v / Q) % SIZE);
 
-                container.addEventListener("mousedown", function (e) {
-                    console.log(e.target);
+                const draw = (e) => {
                     const x = clamp(e.clientX);
                     const y = clamp(e.clientY);
                     fillPixel(x, y);
+                };
+
+                container.addEventListener("mousedown", (e) => {
+                    if (e.buttons === 1) draw(e);
                 });
-                let selected = { h: 0, s: 100, l: 50 };
+                container.addEventListener("mousemove", (e) => {
+                    if (e.buttons === 1) draw(e);
+                });
+                container.addEventListener("contextmenu", (e) => {
+                    e.preventDefault();
+                    return false;
+                });
 
-                var sliderCanvas = document.getElementById("slider"),
-                    sliderCtx = sliderCanvas.getContext("2d");
-                var selectorCanvas = document.getElementById("selector"),
-                    selectorCtx = selectorCanvas.getContext("2d");
-                var sampleCanvas = document.getElementById("sample"),
-                    sampleCtx = sampleCanvas.getContext("2d");
-
-                sliderCanvas.addEventListener("mousedown", (e) => {
-                    const rect = sliderCanvas.getBoundingClientRect();
-                    const h = event.clientY - rect.top;
-                    selected = {
-                        ...selected,
-                        h,
-                    };
-                    memory.push(selected);
+                slider.element.addEventListener("mousedown", (e) => {
+                    const rect = e.target.getBoundingClientRect();
+                    const h = e.clientY - rect.top;
+                    setCurrentColor({ h: Math.floor(h / gradient) * gradient });
                     renderPicker();
                 });
+
                 const toSLCords = (x, y) => {
                     return {
-                        l: 100 - (x / 360) * 100,
-                        s: 100 - (y / 360) * 100,
+                        l: 100 - ((Math.floor(x / gradient) * gradient) / 360) * 100,
+                        s: 100 - ((Math.floor(y / gradient) * gradient) / 360) * 100,
                     };
                 };
 
-                const hsl = (h, s = 100, l = 50) => `hsl(${h}, ${s}%, ${l}%)`;
-
-                selectorCanvas.addEventListener("mousedown", (e) => {
-                    const rect = selectorCanvas.getBoundingClientRect();
-                    const x = event.clientX - rect.left;
-                    const y = event.clientY - rect.top;
-                    selected = {
-                        ...selected,
-                        ...toSLCords(x, y),
-                    };
-                    memory.push(selected);
+                selector.element.addEventListener("mousedown", (e) => {
+                    const rect = e.target.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    setCurrentColor(toSLCords(x, y));
                     renderPicker();
                 });
-                const memory = [];
-                const renderPicker = () => {
-                    const step = 1;
-                    for (let i = 0; i < 360; i += step) {
-                        sliderCtx.fillStyle = hsl(i, 100, 50);
-                        sliderCtx.fillRect(0, i, 30, step);
+
+                sample.element.addEventListener("mousedown", (e) => {
+                    const rect = e.target.getBoundingClientRect();
+                    const y = e.clientY - rect.top;
+                    const slot = Math.floor(y / 30);
+                    if (state.previousColors.length > slot) {
+                        const retrieved = state.previousColors.at(-(slot + 1));
+                        setCurrentColor(retrieved);
+                        renderPicker();
                     }
-                    const gradient = 1;
-                    sampleCtx.fillStyle = ctx.fillStyle = hsl(
-                        selected.h,
-                        selected.s,
-                        selected.l
-                    );
-                    console.log(memory);
-                    for (let n = 0; n < Math.min(12, memory.length); n++) {
-                        if (!memory.length) {
-                            break;
-                        }
-                        const { h, s, l } = memory[memory.length - n - 1];
-                        console.log(h, s, l);
-                        sampleCtx.fillStyle = hsl(h, s, l);
-                        sampleCtx.fillRect(0, n * 30, 30, 30);
+                });
+                const renderPicker = () => {
+                    for (let i = 0; i < 360; i += gradient) {
+                        slider.ctx.fillStyle = hsl(i, 100, 50);
+                        slider.ctx.fillRect(0, i, 30, gradient);
+                    }
+                    for (
+                        let n = 0;
+                        n < Math.min(12, state.previousColors.length);
+                        n++
+                    ) {
+                        const { h, s, l } =
+                            state.previousColors[
+                                state.previousColors.length - n - 1
+                            ];
+                        sample.ctx.fillStyle = hsl(h, s, l);
+                        sample.ctx.fillRect(0, n * 30, 30, 30);
                     }
                     for (let x = 0; x < 360; x += gradient) {
                         for (let y = 0; y < 360; y += gradient) {
                             const { s, l } = toSLCords(x, y);
-                            selectorCtx.fillStyle = hsl(selected.h, s, l);
-                            selectorCtx.fillRect(x, y, gradient, gradient);
+                            selector.ctx.fillStyle = hsl(
+                                state.currentColor.h,
+                                s,
+                                l
+                            );
+                            selector.ctx.fillRect(x, y, gradient, gradient);
                         }
                     }
                 };
