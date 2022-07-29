@@ -53,6 +53,7 @@
             <canvas id="slider" width="30px" height="360px"></canvas>
             <canvas id="selector" width="360px" height="360px"></canvas>
             <canvas id="sample" width="30px" height="360px"></canvas>
+            <a id="download" download="pixium.png">Download pattern</a>
         </div>
         <div id="container">
             <canvas id="pixum" width="128px" height="128px"></canvas>
@@ -70,6 +71,7 @@
                     sample = component("sample"),
                     container = document.getElementById("container"),
                     favicon = document.getElementById("favicon"),
+                    download = document.getElementById("download"),
                     Q = 16,
                     SIZE = 8;
                 const gradient = 30;
@@ -134,6 +136,7 @@
                     data[x][y] = canvas.ctx.fillStyle;
                     canvas.ctx.fillRect(x * Q, y * Q, Q, Q);
                     const content = canvas.element.toDataURL("image/png", "");
+                    download.href = content;
                     document.location.hash = encodeURIComponent(encode(data));
                     container.style["background-image"] = `url(${content})`;
                     document.head.removeChild(favicon);
