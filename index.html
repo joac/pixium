@@ -5,11 +5,7 @@
         <link id="favicon" rel="icon" type="image/png" href="#" />
         <script
             type="application/javascript"
-            src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"
-        ></script>
-        <script
-            type="application/javascript"
-            src="//www.daviddurman.com/flexi-color-picker/js/colorpicker.min.js"
+            src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"
         ></script>
         <style type="text/css">
             html,
@@ -25,7 +21,7 @@
             .controls {
                 float: left;
                 background-color: white;
-                width: 260px;
+                width: 420px;
                 border: solid 2px gray;
                 padding: 6px;
                 -webkit-box-shadow: 0px 6px 13px 0px rgba(50, 50, 50, 0.82);
@@ -41,33 +37,28 @@
                 font-size: 10px;
                 margin-left: 4px;
             }
-            #picker {
-                float: left;
-                width: 200px;
-                height: 200px;
-            }
-            #slide {
-                float: left;
-                width: 30px;
-                height: 200px;
-            }
-            #sample {
-                background-color: #000000;
-                float: left;
-                width: 30px;
-                height: 200px;
-            }
             #pixum {
                 display: none;
+            }
+            #sample,
+            #slider {
+                widht: 30px;
+                height: 360px;
+                float: left;
+            }
+            #selector {
+                witdth: 360px;
+                height: 360px;
+                float: left;
             }
         </style>
     </head>
     <body>
         <div class="controls">
             <div class="title">Pixium<small>Click Anywhere!</small></div>
-            <div id="picker"></div>
-            <div id="slide"></div>
-            <div id="sample"></div>
+            <canvas id="slider" width="30px" height="360px"></canvas>
+            <canvas id="selector" width="360px" height="360px"></canvas>
+            <canvas id="sample" width="30px" height="360px"></canvas>
         </div>
         <div id="container">
             <canvas id="pixum" width="128px" height="128px"></canvas>
@@ -105,18 +96,60 @@
                                 Q) %
                                 SIZE
                         );
-                    console.log(e);
                     fillPixel(x, y);
                 });
+                let selected = { h: 0, s: 100, l: 50 };
 
-                ColorPicker(
-                    document.getElementById("slide"),
-                    document.getElementById("picker"),
-                    function (hex, hsv, rgb) {
-                        ctx.fillStyle = hex;
-                        $sample.css("background-color", hex);
+                var sliderCanvas = document.getElementById("slider"),
+                    sliderCtx = sliderCanvas.getContext("2d");
+                var selectorCanvas = document.getElementById("selector"),
+                    selectorCtx = selectorCanvas.getContext("2d");
+                var sampleCanvas = document.getElementById("sample"),
+                    sampleCtx = sampleCanvas.getContext("2d");
+
+                sliderCanvas.addEventListener("mousedown", (e) => {
+                    const rect = sliderCanvas.getBoundingClientRect();
+                    const x = event.clientY - rect.top;
+                    selected.h = x;
+                    renderPicker();
+                });
+                const toSLCords = (x, y) => {
+                    return {
+                        l: 100 - (x / 360) * 100,
+                        s: 100 - (y / 360) * 100,
+                    };
+                };
+
+                selectorCanvas.addEventListener("mousedown", (e) => {
+                    const rect = selectorCanvas.getBoundingClientRect();
+                    const x = event.clientX - rect.left;
+                    const y = event.clientY - rect.top;
+                    selected = {
+                        ...selected,
+                        ...toSLCords(x, y),
+                    };
+                    renderPicker();
+                });
+
+                const renderPicker = () => {
+                    const step = 1;
+                    for (let i = 0; i < 360; i += step) {
+                        sliderCtx.fillStyle = `hsl(${i}, 100%, 50%)`;
+                        sliderCtx.fillRect(0, i, 30, step);
                     }
-                );
+                    const gradient = 1;
+                    sampleCtx.fillStyle =
+                        ctx.fillStyle = `hsl(${selected.h}, ${selected.s}%, ${selected.l}%)`;
+                    sampleCtx.fillRect(0, 0, 30, 360);
+                    for (let x = 0; x < 360; x += gradient) {
+                        for (let y = 0; y < 360; y += gradient) {
+                            const { s, l } = toSLCords(x, y);
+                            selectorCtx.fillStyle = `hsl(${selected.h}, ${s}%, ${l}%)`;
+                            selectorCtx.fillRect(x, y, gradient, gradient);
+                        }
+                    }
+                };
+                renderPicker();
             });
         </script>
     </body>
