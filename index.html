@@ -92,15 +92,76 @@
                 };
 
                 setCurrentColor({ h: 50, s: 100, l: 50 });
-
+                const data = [];
+                for (let x = 0; x < SIZE; x++) {
+                    data.push([]);
+                    for (let y = 0; y < SIZE; y++) {
+                        data[x].push(undefined);
+                    }
+                }
+                const encode = (data) => {
+                    const output = [];
+                    for (let x = 0; x < SIZE; x++) {
+                        for (let y = 0; y < SIZE; y++) {
+                            output.push((data[x][y] ?? "-").replace("#", ""));
+                        }
+                    }
+                    return output.join("");
+                };
+                const decode = (data) => {
+                    const output = [];
+                    let current = "";
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i] === "-") {
+                            if (current.length) output.push(current);
+                            output.push(undefined);
+                            current = "";
+                        } else if (current.length === 7) {
+                            output.push(current);
+                            current = `#${data[i]}`;
+                        } else if (current.length === 0) {
+                            current = `#${data[i]}`;
+                        } else {
+                            current += data[i];
+                        }
+                    }
+                    if (current.length) {
+                        output.push(current);
+                    }
+                    return output;
+                };
                 const fillPixel = (x, y) => {
+                    data[x][y] = canvas.ctx.fillStyle;
                     canvas.ctx.fillRect(x * Q, y * Q, Q, Q);
                     const content = canvas.element.toDataURL("image/png", "");
+                    document.location.hash = encodeURIComponent(encode(data));
                     container.style["background-image"] = `url(${content})`;
                     document.head.removeChild(favicon);
                     favicon.href = content;
                     document.head.appendChild(favicon);
                 };
+
+                if (document.location.hash) {
+                    try {
+                        const parsed = decode(
+                            decodeURIComponent(document.location.hash.slice(1))
+                        );
+                        console.log(parsed);
+                        for (let x = 0; x < SIZE; x++) {
+                            for (let y = 0; y < SIZE; y++) {
+                                const color = parsed[x * SIZE + y];
+                                console.log(x, y, color);
+                                if (color) {
+                                    canvas.ctx.fillStyle = color;
+                                    fillPixel(x, y);
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        alert("Invalid url");
+                    }
+                }
                 const clamp = (v) => Math.floor((v / Q) % SIZE);
 
                 const draw = (e) => {
@@ -119,6 +180,7 @@
                     e.preventDefault();
                     return false;
                 });
+                // TODO add support for touch devices
 
                 slider.element.addEventListener("mousedown", (e) => {
                     const rect = e.target.getBoundingClientRect();
@@ -129,8 +191,12 @@
 
                 const toSLCords = (x, y) => {
                     return {
-                        l: 100 - ((Math.floor(x / gradient) * gradient) / 360) * 100,
-                        s: 100 - ((Math.floor(y / gradient) * gradient) / 360) * 100,
+                        l:
+                            100 -
+                            ((Math.floor(x / gradient) * gradient) / 360) * 100,
+                        s:
+                            100 -
+                            ((Math.floor(y / gradient) * gradient) / 360) * 100,
                     };
                 };
 
